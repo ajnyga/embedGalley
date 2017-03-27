@@ -131,19 +131,16 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		}
 		
 		// Return false if no XML galleys available
-		if (empty($xmlGalley)) return false;
-		
-		// Fetch XML file contents
-		$xml = file_get_contents($xmlGalley->getFilePath());
-		
+		if (!$xmlGalley) return false;
+				
 		// Parse XML to HTML
-		$html = $this->_parseXml($xml);
+		$html = $this->_parseXml($xmlGalley->getFilePath());
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
 		$output .= $smarty->fetch($this->getTemplatePath() . 'articleFooter.tpl');
 
-		return false;		
+		return false;
 		
 	}
 
@@ -152,8 +149,21 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @param $xml JATS XML Article
 	 * @return HTML article
 	 */
-	function _parseXml($xml) {
-		return $xml;
+	function _parseXml($xmlGalleyPath) {
+		
+		# Use PeerJ jats-conversion
+		# https://github.com/PeerJ/jats-conversion | MIT License (MIT)
+		require $this->getPluginPath() . '/lib/jats-conversion/src/PeerJ/Conversion/JATS.php';
+		$jats = new \PeerJ\Conversion\JATS;
+		
+		$document = new DOMDocument;
+		$document->load($xmlGalleyPath, LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
+		
+		$document = $jats->generateHTML($document);		
+		$html = $document->saveHTML($document->documentElement);
+		
+		return $html;
+		
 	}
 
 
