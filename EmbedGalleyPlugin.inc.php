@@ -30,6 +30,10 @@ class EmbedGalleyPlugin extends GenericPlugin {
 			// Convert JATS XML to HTML and embed to abstact page
 			// TODO: how do you define a sequence for all plugins using this hook?
 			HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
+			
+			// Add stylesheet
+			HookRegistry::register('TemplateManager::display',array($this, 'displayCallback'));
+			
 		
 		}
 		return $success;
@@ -109,6 +113,25 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		return parent::getTemplatePath($inCore) . 'templates/';
 	}
 
+	
+	
+	/**
+	 * Insert stylesheet and js
+	 */
+	function displayCallback($hookName, $params) {
+
+		$template = $params[1];
+			
+		if ($template != 'frontend/pages/article.tpl') return false;
+		
+		$templateMgr = $params[0];
+		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
+		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
+		
+		return false;
+	}
+	
+	
 	/**
 	 * Convert and embed html to abstract page footer
 	 * @param $hookName string
@@ -126,18 +149,26 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		
 		foreach ($article->getGalleys() as $galley) {
 			if ($galley && in_array($galley->getFileType(), array('application/xml', 'text/xml'))) {
-				$xmlGalley = $galley->getFile();
+				$xmlGalley = $galley;
 			}
 		}
 		
 		// Return false if no XML galleys available
+		// TODO: Check for article component -> Article text; check for multilingual
 		if (!$xmlGalley) return false;
-				
-		// Parse XML to HTML
-		$html = $this->_parseXml($xmlGalley->getFilePath());
+		
+		$request = Application::getRequest();	
+		$xmlGalley = $galley->getFile();
+		
+		// Parse XML to HTML		
+		$html = $this->_parseXml($xmlGalley);
+		
+		// Parse HTML image url's etc.
+		$html = $this->_getHtmlContents($request, $html, $galley);
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
+		
 		$output .= $smarty->fetch($this->getTemplatePath() . 'articleFooter.tpl');
 
 		return false;
@@ -149,7 +180,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @param $xml JATS XML Article
 	 * @return HTML article
 	 */
-	function _parseXml($xmlGalleyPath) {
+	function _parseXml($xmlGalley) {
 		
 		# Use PeerJ jats-conversion
 		# https://github.com/PeerJ/jats-conversion | MIT License (MIT)
@@ -157,14 +188,60 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$jats = new \PeerJ\Conversion\JATS;
 		
 		$document = new DOMDocument;
-		$document->load($xmlGalleyPath, LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
+		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
+
 		
 		$document = $jats->generateHTML($document);		
 		$html = $document->saveHTML($document->documentElement);
 		
 		return $html;
 		
+		
+		
 	}
+
+	/**
+	 * Return string containing the contents of the HTML file.
+	 * This function performs any necessary filtering, like image URL replacement.
+	 * @param $request PKPRequest
+	 * @param $galley ArticleGalley
+	 * @return string
+	 */	
+	function _getHTMLContents($request, $contents, $galley) {
+		$journal = $request->getJournal();
+		$submissionFile = $galley->getFile();
+
+		// Replace media file references
+		$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
+		import('lib.pkp.classes.submission.SubmissionFile'); // Constants
+		$embeddableFiles = array_merge(
+			$submissionFileDao->getLatestRevisions($submissionFile->getSubmissionId(), SUBMISSION_FILE_PROOF),
+			$submissionFileDao->getLatestRevisionsByAssocId(ASSOC_TYPE_SUBMISSION_FILE, $submissionFile->getFileId(), $submissionFile->getSubmissionId(), SUBMISSION_FILE_DEPENDENT)
+		);
+		$referredArticle = null;
+		$articleDao = DAORegistry::getDAO('ArticleDAO');
+
+		foreach ($embeddableFiles as $embeddableFile) {
+			$params = array();
+
+			// Ensure that the $referredArticle object refers to the article we want
+			if (!$referredArticle || $referredArticle->getId() != $galley->getSubmissionId()) {
+				$referredArticle = $articleDao->getById($galley->getSubmissionId());
+			}
+			$fileUrl = $request->url(null, 'article', 'download', array($referredArticle->getBestArticleId(), $galley->getBestGalleyId(), $embeddableFile->getFileId()), $params);
+			$pattern = preg_quote($embeddableFile->getOriginalFileName());
+
+			$contents = preg_replace(
+				'/([Ss][Rr][Cc]|[Hh][Rr][Ee][Ff]|[Dd][Aa][Tt][Aa])\s*=\s*"([^"]*' . $pattern . ')"/',
+				'\1="' . $fileUrl . '"',
+				$contents
+			);
+
+
+		}
+
+		return $contents;
+	}	
 
 
 	

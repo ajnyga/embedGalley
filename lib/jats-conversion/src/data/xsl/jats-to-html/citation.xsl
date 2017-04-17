@@ -26,9 +26,13 @@
 		        </xsl:otherwise>
 	        </xsl:choose>
             <xsl:apply-templates select="elocation-id" mode="citation"/>
-            <xsl:call-template name="pagination"/>
-            <xsl:text>&#32;</xsl:text>
+			<xsl:call-template name="pagination"/>
+			<xsl:text>.</xsl:text>
             <xsl:call-template name="comment"/>
+			<xsl:text>&#32;</xsl:text>
+            <xsl:call-template name="citation-url">
+                <xsl:with-param name="citation" select="."/>
+            </xsl:call-template>
         </span>
     </xsl:template>
 
@@ -46,11 +50,17 @@
             <xsl:apply-templates select="publisher-name | institution" mode="citation"/>
             <xsl:text>&#32;</xsl:text>
             <xsl:apply-templates select="volume" mode="citation"/>
+			<xsl:apply-templates select="date/year | year" mode="citation"/>
             <xsl:call-template name="pagination"/>
             <xsl:text>&#32;</xsl:text>
             <xsl:apply-templates select="pub-id[@pub-id-type='isbn']" mode="citation"/>
             <xsl:call-template name="comment"/>
+            <xsl:call-template name="citation-url">
+                <xsl:with-param name="citation" select="."/>
+            </xsl:call-template>			
         </span>
+		
+
     </xsl:template>
 
     <!-- conference proceedings -->
@@ -76,6 +86,9 @@
             <xsl:text>&#32;</xsl:text>
             <xsl:apply-templates select="pub-id[@pub-id-type='isbn']" mode="citation"/>
             <xsl:call-template name="comment"/>
+			<xsl:call-template name="citation-url">
+                <xsl:with-param name="citation" select="."/>
+            </xsl:call-template>
         </span>
     </xsl:template>
 
@@ -91,6 +104,9 @@
         <xsl:apply-templates select="volume" mode="citation"/>
         <xsl:call-template name="pagination"/>
         <xsl:call-template name="comment"/>
+		<xsl:call-template name="citation-url">
+			<xsl:with-param name="citation" select="."/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- thesis citations -->
@@ -211,6 +227,9 @@
             <xsl:text>&#32;</xsl:text>
             <xsl:apply-templates select="pub-id[@pub-id-type='isbn']" mode="citation"/>
             <xsl:call-template name="comment"/>
+			<xsl:call-template name="citation-url">
+                <xsl:with-param name="citation" select="."/>
+            </xsl:call-template>
         </span>
     </xsl:template>
 
@@ -222,6 +241,10 @@
         </cite>
         <xsl:text>&#32;</xsl:text>
         <xsl:apply-templates select="source" mode="citation"/>
+		<xsl:call-template name="comment"/>
+		<xsl:call-template name="citation-url">
+			<xsl:with-param name="citation" select="."/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- page range(s) -->
@@ -442,22 +465,11 @@
         <xsl:param name="citation"/>
 
         <xsl:variable name="doi" select="$citation/pub-id[@pub-id-type='doi']"/>
-        <xsl:variable name="arxiv" select="$citation/pub-id[@pub-id-type='arxiv']"/>
         <xsl:variable name="uri" select="$citation/uri"/>
-        <xsl:variable name="comment-uri" select="$citation/comment//uri"/>
 
         <xsl:choose>
             <xsl:when test="$doi">
-                <xsl:variable name="encoded-doi">
-                    <xsl:call-template name="urlencode">
-                        <xsl:with-param name="value" select="$doi"/>
-                    </xsl:call-template>
-                </xsl:variable>
-
-                <xsl:value-of select="concat('https://doi.org/', $encoded-doi)"/>
-            </xsl:when>
-            <xsl:when test="$arxiv">
-                <xsl:value-of select="concat('http://arxiv.org/abs/', $arxiv)"/>
+                <xsl:value-of select="concat('https://doi.org/', $doi)"/>
             </xsl:when>
             <xsl:when test="$uri/@xlink:href">
                 <xsl:value-of select="$uri/@xlink:href"/>
@@ -465,66 +477,15 @@
             <xsl:when test="$uri">
                 <xsl:value-of select="$uri"/>
             </xsl:when>
-            <xsl:when test="$comment-uri/@xlink:href">
-                <xsl:value-of select="$comment-uri/@xlink:href"/>
-            </xsl:when>
-            <xsl:when test="$comment-uri">
-                <xsl:value-of select="$comment-uri"/>
-            </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="authors" select="$citation/person-group[@person-group-type='author']"/>
-
-                <xsl:choose>
-                    <xsl:when test="$citation/@publication-type = 'book'">
-                        <xsl:choose>
-                            <xsl:when test="$citation/article-title">
-                                <xsl:value-of select="concat('https://scholar.google.com/scholar_lookup?title=', $citation/article-title, '&amp;author=', $authors/name[1]/surname, '&amp;publication_year=', $citation/year/@iso-8601-date)"/>
-                            </xsl:when>
-                            <xsl:when test="$citation/source">
-                                <xsl:variable name="editors" select="$citation/person-group[@person-group-type='editor']"/>
-                                <xsl:variable name="author">
-                                    <xsl:choose>
-                                        <xsl:when test="$editors">
-                                            <xsl:value-of select="$editors/name[1]/surname"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:value-of select="$authors/name[1]/surname"/>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:variable>
-	                            <xsl:value-of select="concat('https://scholar.google.com/scholar_lookup?title=', $citation/source, '&amp;author=', $author, '&amp;publication_year=', $citation/year/@iso-8601-date)"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="concat('#', $citation/../@id)"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:choose>
-                            <xsl:when test="$citation/article-title">
-                                <xsl:value-of select="concat('https://scholar.google.com/scholar_lookup?title=', $citation/article-title, '&amp;author=', $authors/name[1]/surname, '&amp;publication_year=', $citation/year/@iso-8601-date)"/>
-                            </xsl:when>
-
-                            <xsl:otherwise>
-                                <xsl:value-of select="concat('#', $citation/../@id)"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:otherwise>
-                </xsl:choose>
+				
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
     <xsl:template match="article-title | data-title" mode="citation">
-        <a class="{local-name()}" target="_blank" itemprop="url">
-            <xsl:attribute name="href">
-                <xsl:call-template name="citation-url">
-                    <xsl:with-param name="citation" select=".."/>
-                </xsl:call-template>
-            </xsl:attribute>
-            <xsl:apply-templates select="node()|@*"/>
-            <xsl:apply-templates select="../named-content[@content-type='abstract-details']" mode="citation"/>
-        </a>
+        <xsl:apply-templates select="node()|@*"/>
+         <xsl:apply-templates select="../named-content[@content-type='abstract-details']" mode="citation"/>
         <xsl:call-template name="title-punctuation"/>
     </xsl:template>
 
@@ -627,7 +588,7 @@
             <xsl:apply-templates/>
         </span>
     </xsl:template>
-
+	
     <!-- comments, access date -->
     <xsl:template name="comment">
         <xsl:apply-templates select="comment" mode="citation"/>
@@ -701,7 +662,7 @@
     <!-- convert the first letter of a string to uppercase -->
     <xsl:template name="ucfirst">
         <xsl:param name="text"/>
-        <xsl:value-of select="translate(substring($text, 1, 1) , 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+        <xsl:value-of select="translate(substring($text, 1, 1) , 'abcdefghijklmnopqrstuvwxyzåöä', 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÖÄ')"/>
         <xsl:value-of select="substring($text, 2, string-length($text) - 1)"/>
     </xsl:template>
 </xsl:stylesheet>

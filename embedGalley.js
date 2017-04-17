@@ -1,0 +1,3 @@
+  $( function() {
+    $( "#full-article" ).tooltip();
+  } );

@@ -43,6 +43,7 @@
     </xsl:variable>
 
     <xsl:key name="ref" match="ref" use="@id"/>
+	<xsl:key name="footn" match="fn" use="@id"/>
     <xsl:key name="aff" match="aff" use="@id"/>
     <xsl:key name="corresp" match="corresp" use="@id"/> <!-- remove when converted -->
 
@@ -291,7 +292,7 @@
     </xsl:template>
 
     <!-- text formatting -->
-    <!--
+    
     <xsl:template match="italic">
         <span class="{local-name()}">
             <xsl:call-template name="add-style">
@@ -309,7 +310,7 @@
             <xsl:apply-templates select="node()|@*"/>
         </span>
     </xsl:template>
-    -->
+    
 
     <xsl:template match="italic">
         <i>
@@ -695,6 +696,17 @@
         </a>
     </xsl:template>
 
+    <!-- footnote reference -->
+    <xsl:template match="xref[@ref-type='fn']">
+        <xsl:variable name="footn" select="key('footn', @rid)"/>
+		<xsl:variable name="title" select="$footn/p"/>
+        <sup>
+		<a class="{local-name()} xref-{@ref-type}"  href="#{@rid}" title="{$title}">
+           <xsl:apply-templates select="node()|@*"/>
+        </a>
+		</sup>
+    </xsl:template>	
+	
     <!-- bibliographic reference -->
     <xsl:template match="xref[@ref-type='bibr']">
         <xsl:variable name="ref" select="key('ref', @rid)"/>
@@ -702,20 +714,16 @@
 
         <xsl:variable name="title">
             <xsl:choose>
-                <xsl:when test="$citation/article-title">
-                    <xsl:value-of select="$citation/article-title"/>
+                <xsl:when test="$citation">
+					<xsl:apply-templates select="$citation|@*"/>
                 </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="$citation/source"/>
-                </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="ref-doi" select="$ref/*/pub-id[@pub-id-type='doi']"/>
         <xsl:variable name="ref-uri" select="$ref/*/comment/uri"/>
+		
         <xsl:variable name="url">
-            <xsl:call-template name="citation-url">
-                <xsl:with-param name="citation" select="$citation"/>
-            </xsl:call-template>
+			<xsl:value-of select="concat('#', $citation/../@id)"/>
         </xsl:variable>
 
         <a class="{local-name()} xref-{@ref-type}" href="{$url}" title="{$title}">
@@ -750,13 +758,6 @@
             <xsl:apply-templates select="node()|@*"/>
 
             <div class="figcaption-footer">
-                <div class="article-image-download">
-                    <xsl:variable name="fig-id" select="../@id"/>
-                    <a href="{$static-root}{$fig-id}-full.png" class="btn btn-mini" download="{$download-prefix}-{$id}-{$fig-id}.png" itemprop="url">
-                        <i class="icon-large icon-picture">&#160;</i>
-                        <xsl:text>&#32;Download full-size image</xsl:text>
-                    </a>
-                </div>
 
                 <xsl:apply-templates select="../object-id[@pub-id-type='doi']" mode="caption"/>
             </div>
@@ -799,23 +800,15 @@
     <xsl:template match="graphic" mode="fig">
         <xsl:variable name="fig" select=".."/>
         <xsl:variable name="fig-id" select="$fig/@id"/>
-        <xsl:variable name="root" select="concat($static-root, substring-before(@xlink:href, '.'))"/>
-        <a href="{$root}-2x.jpg"
-           title="View the full image"
-           class="fresco"
-           data-fresco-caption="{$fig/label}: {$fig/caption/title}"
-           data-fresco-group="figure"
-           data-fresco-options="fit: 'width', ui: 'outside', thumbnails: false, loop: true, position: true, overflow: true, preload: false">
+        <xsl:variable name="root" select="concat($static-root, @xlink:href)"/>
+        <a href="{$root}"
+           title=""
+           data-fresco-caption="{$fig/label}: {$fig/caption/title}">
 	        <img class="{local-name()}"
-	             src="{$root}-1x.jpg"
+	             src="{$root}"
 	             itemprop="contentUrl"
-	             sizes="(min-width: 1200px) 581px, (max-width: 1199px) and (min-width: 980px) 462px, (max-width: 979px) and (min-width: 768px) 347px, (max-width: 767px) calc(100vw - 50px)"
-	             srcset="{$root}-2x.jpg 1200w, {$root}-1x.jpg 600w, {$root}-small.jpg 355w"
 	             data-image-id="{$fig-id}"
 	             alt="{$fig/caption/title}"
-	             data-full="{$root}-full.png"
-	             data-thumb="{$root}-thumb.jpg"
-	             data-original="{$static-root}{@xlink:href}"
 	             data-image-type="figure">
 		        <xsl:apply-templates select="@*"/>
 	        </img>
@@ -1022,9 +1015,9 @@
     <xsl:template match="ref-list">
         <section class="ref-list-container" id="references">
             <xsl:apply-templates select="title"/>
-            <ul class="{local-name()}">
+            <ol class="{local-name()}">
                 <xsl:apply-templates select="ref|@*"/>
-            </ul>
+            </ol>
         </section>
     </xsl:template>
 
