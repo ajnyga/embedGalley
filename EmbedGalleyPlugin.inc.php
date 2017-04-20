@@ -157,13 +157,12 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		if (!$xmlGalley) return false;
 		
 		$request = Application::getRequest();	
-		$xmlGalley = $galley->getFile();
 		
 		// Parse XML to HTML		
-		$html = $this->_parseXml($xmlGalley);
+		$html = $this->_parseXml($xmlGalley->getFile());
 		
 		// Parse HTML image url's etc.
-		$html = $this->_parseHtmlContents($request, $html, $galley);
+		$html = $this->_parseHtmlContents($request, $html, $xmlGalley);
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
