@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2014-2017 Simon Fraser University
  * Copyright (c) 2003-2017 John Willinsky
+ * Copyright (c) 2017 The Federation of Finnish Learned Societies
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class embedGalley
@@ -27,11 +28,10 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) return true;
 		if ($success && $this->getEnabled()) {
 			
-			// Convert JATS XML to HTML and embed to abstact page
 			// TODO: how do you define a sequence for all plugins using this hook?
 			HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
 			
-			// Add stylesheet
+			// Add stylesheet and javascript
 			HookRegistry::register('TemplateManager::display',array($this, 'displayCallback'));
 			
 		
@@ -127,6 +127,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$templateMgr = $params[0];
 		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
 		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
+		$templateMgr->addJavaScript('mathJax', 'http://beta.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML-full');		
 		
 		return false;
 	}
@@ -141,12 +142,10 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$smarty =& $params[1];
 		$output =& $params[2];
 		
-		// Search for XML galleys
-		// TODO: handle language versions ie. multiple XML galleys. Check for current locale and use that. If not available fallback to primary locale and/or the XML version that is available
-		$xmlGalley = null;
 		$article = $smarty->get_template_vars('article');
 		$galleys = $article->getGalleys();
 		
+		// TODO: handle language versions ie. multiple XML galleys. Check for current locale and use that. If not available fallback to primary locale and/or the XML version that is available
 		foreach ($article->getGalleys() as $galley) {
 			if ($galley && in_array($galley->getFileType(), array('application/xml', 'text/xml'))) {
 				$xmlGalley = $galley;
@@ -164,7 +163,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$html = $this->_parseXml($xmlGalley);
 		
 		// Parse HTML image url's etc.
-		$html = $this->_getHtmlContents($request, $html, $galley);
+		$html = $this->_parseHtmlContents($request, $html, $galley);
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
@@ -177,37 +176,32 @@ class EmbedGalleyPlugin extends GenericPlugin {
 
 	/**
 	 * Return string containing the parsed HTML file.
-	 * @param $xml JATS XML Article
-	 * @return HTML article
+	 * @param $xmlGalley JATS XML Galley file
+	 * @return string
 	 */
 	function _parseXml($xmlGalley) {
 		
-		# Use PeerJ jats-conversion
-		# https://github.com/PeerJ/jats-conversion | MIT License (MIT)
-		require $this->getPluginPath() . '/lib/jats-conversion/src/PeerJ/Conversion/JATS.php';
-		$jats = new \PeerJ\Conversion\JATS;
-		
 		$document = new DOMDocument;
 		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
-
 		
-		$document = $jats->generateHTML($document);		
+		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded
+		$citation_style = "ABNT"; 
+		$document = $this->_generateHTML($document, $citation_style);
+		
 		$html = $document->saveHTML($document->documentElement);
 		
 		return $html;
 		
-		
-		
 	}
 
 	/**
-	 * Return string containing the contents of the HTML file.
+	 * Return string containing the parsed contents of the HTML file.
 	 * This function performs any necessary filtering, like image URL replacement.
 	 * @param $request PKPRequest
 	 * @param $galley ArticleGalley
 	 * @return string
 	 */	
-	function _getHTMLContents($request, $contents, $galley) {
+	function _parseHtmlContents($request, $contents, $galley) {
 		$journal = $request->getJournal();
 		$submissionFile = $galley->getFile();
 
@@ -242,8 +236,46 @@ class EmbedGalleyPlugin extends GenericPlugin {
 
 		return $contents;
 	}	
+	
+	/**
+	 * Generate HTML from XML
+	 * @param $input JATS XML DOMDocument
+	 * @param $citation_style Style for references
+	 * @return DOMdocument
+	 */	
+    function _generateHTML(\DOMDocument $input, $citation_style){
+		
+		$path = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+		
+        $stylesheet = new \DOMDocument();
+        $stylesheet->load($path);
 
+        $processor = new \XSLTProcessor();
+        $processor->registerPHPFunctions([
+            'rawurlencode',
+            'EmbedGalleyPlugin::formatDate'
+        ]);
+		
+        $processor->importStyleSheet($stylesheet);
+		
+        $doc = $processor->transformToDoc($input);
+        $doc->formatOutput = true;
 
+        return $doc;
+    }	
+	
+	/**
+	 * Return string containing date
+	 * @param $text String to be formatted
+	 * @param $format Date format, default DATE_W3C
+	 * @return string
+	 */	
+    public static function formatDate($text, $format = DATE_W3C){
+        $date = new \DateTime($text);
+        return $date->format($format);
+    }
+	
+	
 	
 }
 
