@@ -183,8 +183,8 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$document = new DOMDocument;
 		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
 		
-		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded
-		$citation_style = "ABNT"; 
+		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded here
+		$citation_style = "APA"; 
 		$document = $this->_generateHTML($document, $citation_style);
 		
 		$html = $document->saveHTML($document->documentElement);

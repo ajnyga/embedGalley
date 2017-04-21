@@ -40,6 +40,21 @@
 	padding: 0 2px 0 2px;
 }
 
+.xref-bibr{
+  background: rgba(11, 157, 217, 0.075);
+  color: #1B6685;
+  border-bottom: 1px solid rgba(11, 157, 217, 0.4);
+  cursor: pointer;
+  padding-right: 3px;
+  padding-left: 3px;
+}
+
+.xref-fig{
+  background: rgba(145, 187, 4, 0.15);
+  border-bottom: 1px solid rgba(145, 187, 4, 0.6);
+  color: #495A11;
+  cursor: pointer; 
+}
 
 .table-wrap  table {
   border: 1px solid #ccc;

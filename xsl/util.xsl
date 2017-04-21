@@ -34,6 +34,13 @@
             <xsl:text>.</xsl:text>
         </xsl:if>
     </xsl:template>
+	
+    <!-- convert the first letter of a string to uppercase -->
+    <xsl:template name="ucfirst">
+        <xsl:param name="text"/>
+        <xsl:value-of select="translate(substring($text, 1, 1) , 'abcdefghijklmnopqrstuvwxyzåöä', 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÖÄ')"/>
+        <xsl:value-of select="substring($text, 2, string-length($text) - 1)"/>
+    </xsl:template>	
 
     <xsl:template name="comma-separator">
         <xsl:param name="separator" select="', '"/>

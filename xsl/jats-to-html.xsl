@@ -269,12 +269,6 @@
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="given-names">
-        <span class="{local-name()}" itemprop="givenName">
-            <xsl:apply-templates select="node()|@*"/>
-        </span>
-    </xsl:template>
-
     <xsl:template match="surname">
         <span class="{local-name()}" itemprop="familyName">
             <xsl:apply-templates select="node()|@*"/>
@@ -579,57 +573,6 @@
             <xsl:when test="$type = 'doi'">
                 <xsl:value-of select="concat('https://doi.org/', $encoded-id)"/>
             </xsl:when>
-            <xsl:when test="$type = 'DDBJ/EMBL/GenBank'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/nucleotide?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:nucleotide'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/nucleotide?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:gene'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/gene?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:protein'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/protein?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:taxonomy'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/taxonomy?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:geo'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/gds?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:structure'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/structure?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'Omim'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/omim?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:pubchem-bioassay'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/pcassay?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:pubchem-compound'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/pccompound?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:pubchem-substance'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/pcsubstance?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:refseq'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/nuccore?term=srcdb_refseq[PROP]+AND+', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:refseq_gene'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/gene?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'NCBI:sra'">
-                <xsl:value-of select="concat('https://www.ncbi.nlm.nih.gov/sra?term=', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'SwissProt'">
-                <xsl:value-of select="concat('http://www.uniprot.org/uniprot/', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'UniProt'">
-                <xsl:value-of select="concat('http://www.uniprot.org/uniprot/', $encoded-id)"/>
-            </xsl:when>
-            <xsl:when test="$type = 'ENSEMBL'">
-                <xsl:value-of select="concat('http://www.ensembl.org/id/', $encoded-id)"/>
-            </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$uri"/>
             </xsl:otherwise>
@@ -720,6 +663,7 @@
             <xsl:choose>
                 <xsl:when test="$citation">
 					<xsl:apply-templates select="$citation|@*"/>
+				
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
