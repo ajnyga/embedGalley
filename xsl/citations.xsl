@@ -9,11 +9,9 @@
         <xsl:choose>
             <xsl:when test="page-range">
                 <xsl:apply-templates select="page-range" mode="citation"/>
-				<xsl:text>.</xsl:text>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="fpage" mode="citation"/>
-				<xsl:text>.</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -319,11 +317,13 @@
                 <span class="lpage" itemprop="pageEnd">
                     <xsl:value-of select="../lpage"/>
                 </span>
+				<xsl:text>.</xsl:text>
             </xsl:when>
             <xsl:otherwise>
                 <span class="{local-name()}" itemprop="pageStart">
                     <xsl:apply-templates/>
                 </span>
+				<xsl:text>.</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
