@@ -49,12 +49,14 @@
   padding-left: 3px;
 }
 
-.xref-fig{
+.xref-fig, .xref-table{
   background: rgba(145, 187, 4, 0.15);
   border-bottom: 1px solid rgba(145, 187, 4, 0.6);
   color: #495A11;
   cursor: pointer; 
 }
+
+
 
 .table-wrap  table {
   border: 1px solid #ccc;
