@@ -183,14 +183,27 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$document = new DOMDocument;
 		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
 		
-		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded here
+		// TODO: use $citation_style to select the correct citation style from plugin settings, for now APA is hardcoded here
 		$citation_style = "APA"; 
-		$document = $this->_generateHTML($document, $citation_style);
+		
+		$xslpath = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+		
+        $stylesheet = new DOMDocument;
+        $stylesheet->load($xslpath);
+
+        $processor = new XSLTProcessor;
+        $processor->registerPHPFunctions([
+            'rawurlencode',
+            'EmbedGalleyPlugin::formatDate'
+        ]);
+        $processor->importStyleSheet($stylesheet);
+		
+        $document = $processor->transformToDoc($document);
+        $document->formatOutput = true;		
 		
 		$html = $document->saveHTML($document->documentElement);
 		
 		return $html;
-		
 	}
 
 	/**
@@ -236,32 +249,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		return $contents;
 	}	
 	
-	/**
-	 * Generate HTML from XML
-	 * @param $input JATS XML DOMDocument
-	 * @param $citation_style Style for references
-	 * @return DOMdocument
-	 */	
-    function _generateHTML(\DOMDocument $input, $citation_style){
-		
-		$path = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
-		
-        $stylesheet = new \DOMDocument();
-        $stylesheet->load($path);
 
-        $processor = new \XSLTProcessor();
-        $processor->registerPHPFunctions([
-            'rawurlencode',
-            'EmbedGalleyPlugin::formatDate'
-        ]);
-		
-        $processor->importStyleSheet($stylesheet);
-		
-        $doc = $processor->transformToDoc($input);
-        $doc->formatOutput = true;
-
-        return $doc;
-    }	
 	
 	/**
 	 * Return string containing date
