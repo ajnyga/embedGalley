@@ -5,8 +5,9 @@
  *
  * Copyright (c) 2014-2017 Simon Fraser University
  * Copyright (c) 2003-2017 John Willinsky
- * Copyright (c) 2017 The Federation of Finnish Learned Societies
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ *
+ * The Federation of Finnish Learned Societies
  *
  * @class embedGalley
  * @ingroup plugins_generic_embedGalley
