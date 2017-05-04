@@ -8,5 +8,5 @@
  * A template to be included via Templates::Article::Footer::PageFooter hook.
  *}
 <div id="full-article">
-	{$html}
+	{$html|strip_unsafe_html}
 </div>
