@@ -127,8 +127,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$templateMgr = $params[0];
 		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
 		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
-		$templateMgr->addJavaScript('mathJax', 'http://beta.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML-full');		
-		
+		$templateMgr->addJavaScript('mathJax', '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=MML_HTMLorMML-full');
 		return false;
 	}
 	
