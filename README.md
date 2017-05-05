@@ -3,10 +3,11 @@ EmbedGalley plugin automatically converts a JATS XML galley to embedded HTML, wh
 
 The plugin is using some code and XSL files from https://github.com/PeerJ/jats-conversion. Thank you!
 
-The plugin was created by The Federation of Finnish Learned Societies.
-
-TODO
-- support for other citation formats
+Possible changes:
+- New citation formats (currently only APA)
+- Settings for switching between citation formats
+- Activate/disable MathJax from settings
 - allow custom CSS
-- add back links to references
+- clean XSL
 
+Created by The Federation of Finnish Learned Societies.
