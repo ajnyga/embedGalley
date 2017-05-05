@@ -667,7 +667,7 @@
         </xsl:variable>
         <xsl:variable name="ref-doi" select="$ref/*/pub-id[@pub-id-type='doi']"/>
         <xsl:variable name="ref-uri" select="$ref/*/comment/uri"/>
-		
+			
         <xsl:variable name="url">
 			<xsl:value-of select="concat('#', $citation/../@id)"/>
         </xsl:variable>
@@ -675,6 +675,7 @@
         <a class="{local-name()} xref-{@ref-type}" href="{$url}" title="{$title}">
             <xsl:apply-templates select="node()|@*"/>
         </a>
+		
     </xsl:template>
 
     <!-- figure -->
@@ -742,6 +743,7 @@
     </xsl:template>
 
     <!-- figure graphic -->
+    <!-- TODO: image width and height -->
     <xsl:template match="graphic" mode="fig">
         <xsl:variable name="fig" select=".."/>
         <xsl:variable name="fig-id" select="$fig/@id"/>
@@ -809,6 +811,7 @@
         <div class="{local-name()} well well-small">
             <xsl:apply-templates select="@*"/>
             <h3 class="heading">
+                <!--<xsl:apply-templates select="label/text()"/>-->
                 <xsl:choose>
                     <xsl:when test="normalize-space(caption/title) != ''">
                         <xsl:apply-templates select="caption/title" mode="supp-title"/>
@@ -823,11 +826,21 @@
 
             <xsl:apply-templates select="object-id[@pub-id-type='doi']" mode="caption"/>
 
+	    <!--<xsl:apply-templates select="." mode="file-viewer"/>-->
+
             <xsl:call-template name="supplemental-file-download">
                 <xsl:with-param name="filename" select="@xlink:href"/>
             </xsl:call-template>
         </div>
     </xsl:template>
+
+	<!--
+	<xsl:template match="supplementary-material[@mimetype='video']" mode="file-viewer">
+		<video controls="controls" preload="none" width="100%">
+			<source src="{$static-root}{@xlink:href}" type="video/{@mime-subtype}"/>
+		</video>
+	</xsl:template>
+	-->
 
     <xsl:template name="supplemental-file-download">
         <xsl:param name="filename"/>
@@ -842,6 +855,7 @@
             <a href="{$static-root}{$encoded-filename}" class="btn article-supporting-download"
                data-rel="supplement" download="{$filename}" data-filename="{$filename}">
                 <i class="icon-large icon-download-alt">&#160;</i>
+                <!--<xsl:value-of select="concat(' Download .', ../@mime-subtype)"/>-->
                 <xsl:value-of select="' Download'"/>
             </a>
         </div>
