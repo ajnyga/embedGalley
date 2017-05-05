@@ -129,6 +129,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
 		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
 		$templateMgr->addJavaScript('mathJax', '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=MML_HTMLorMML-full');
+		
 		return false;
 	}
 	
@@ -163,12 +164,12 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		
 		// Parse HTML image url's etc.
 		$html = $this->_parseHtmlContents($request, $html, $xmlGalley);
-
+		
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
 		
 		$output .= $smarty->fetch($this->getTemplatePath() . 'articleFooter.tpl');
-
+		
 		return false;
 		
 	}
@@ -181,12 +182,12 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	function _parseXml($xmlGalley) {
 		
 		$document = new DOMDocument;
-		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
+		$document->load($xmlGalley->getFilePath());
 		
 		// TODO: use $citation_style to select the correct citation style from plugin settings, for now APA is hardcoded here
 		$citation_style = "APA"; 
-		
-		$xslpath = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+				
+		$xslpath = Core::getBaseDir() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
 		
         $stylesheet = new DOMDocument;
         $stylesheet->load($xslpath);
@@ -202,7 +203,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
         $document->formatOutput = true;		
 		
 		$html = $document->saveHTML($document->documentElement);
-		
+				
 		return $html;
 	}
 
