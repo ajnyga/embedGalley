@@ -141,10 +141,10 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 */
 	function embedHtml($hookName, $params) {
 		$smarty =& $params[1];
-		$output =& $params[2];
 		
 		$article = $smarty->get_template_vars('article');
-				
+		assert(is_a($article, 'PublishedArticle'));
+		
 		$genreDao = DAORegistry::getDAO('GenreDAO');
 		
 		foreach ($article->getLocalizedGalleys() as $galley) {
@@ -160,7 +160,8 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		
 		// Return false if no XML galleys available
 		if (!$xmlGalley) return false;
-		
+
+		$output =& $params[2];
 		$request = Application::getRequest();	
 		
 		// Parse XML to HTML		
