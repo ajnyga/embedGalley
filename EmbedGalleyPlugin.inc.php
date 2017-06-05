@@ -29,12 +29,12 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) return true;
 		if ($success && $this->getEnabled()) {
 			
-			// TODO: how do you define a sequence for all plugins using this hook?
 			HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
+			
+			#HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'), HOOK_SEQUENCE_NORMAL);
 			
 			// Add stylesheet and javascript
 			HookRegistry::register('TemplateManager::display',array($this, 'displayCallback'));
-			
 		
 		}
 		return $success;
