@@ -144,17 +144,21 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$output =& $params[2];
 		
 		$article = $smarty->get_template_vars('article');
-		$galleys = $article->getGalleys();
+				
+		$genreDao = DAORegistry::getDAO('GenreDAO');
 		
-		// TODO: handle language versions ie. multiple XML galleys. Check for current locale and use that. If not available fallback to primary locale and/or the XML version that is available
-		foreach ($article->getGalleys() as $galley) {
-			if ($galley && in_array($galley->getFileType(), array('application/xml', 'text/xml'))) {
-				$xmlGalley = $galley;
+		foreach ($article->getLocalizedGalleys() as $galley) {
+			if ($galley && !$galley->getRemoteURL() && in_array($galley->getFileType(), array('application/xml', 'text/xml')))
+			{			
+				$galleyFile = $galley->getFile();
+				$genre = $genreDao->getById($galleyFile->getGenreId());
+				if (!$genre->getSupplementary()) {
+					$xmlGalley = $galley;
+				}	
 			}
 		}
 		
 		// Return false if no XML galleys available
-		// TODO: Check for article component -> Article text; check for multilingual
 		if (!$xmlGalley) return false;
 		
 		$request = Application::getRequest();	
