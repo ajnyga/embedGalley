@@ -49,11 +49,6 @@
             </xsl:call-template>
 			
         </span>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>
-		
     </xsl:template>
 
 	
@@ -94,10 +89,6 @@
                 <xsl:with-param name="citation" select="."/>
             </xsl:call-template>			
         </span>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- conference proceedings -->
@@ -127,10 +118,6 @@
                 <xsl:with-param name="citation" select="."/>
             </xsl:call-template>
         </span>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- report citations -->
@@ -157,10 +144,6 @@
 		<xsl:call-template name="citation-url">
 			<xsl:with-param name="citation" select="."/>
         </xsl:call-template>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- thesis citations -->
@@ -174,10 +157,6 @@
         <xsl:apply-templates select="institution" mode="thesis-citation"/>
         <xsl:call-template name="comment"/>
         <xsl:call-template name="publication-type-label"/>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- working paper (preprint) citations -->
@@ -189,10 +168,6 @@
         <xsl:apply-templates select="version" mode="citation"/>
         <xsl:call-template name="comment"/>
         <xsl:call-template name="publication-type-label"/>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- software citations -->
@@ -226,10 +201,6 @@
         </span>
         <xsl:call-template name="comment"/>
         <xsl:call-template name="publication-type-label"/>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- data citations -->
@@ -243,10 +214,6 @@
         <xsl:apply-templates select="version" mode="citation"/>
         <xsl:call-template name="comment"/>
         <xsl:call-template name="publication-type-label"/>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- tweet citations -->
@@ -277,10 +244,6 @@
         </time>
         <xsl:text>&#32;</xsl:text>
         <xsl:call-template name="publication-type-label"/>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- "other" citations -->
@@ -305,10 +268,6 @@
                 <xsl:with-param name="citation" select="."/>
             </xsl:call-template>
         </span>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
 
     <!-- other citations (?) -->
@@ -333,12 +292,7 @@
 		<xsl:call-template name="citation-url">
 			<xsl:with-param name="citation" select="."/>
         </xsl:call-template>
-		<xsl:text>&#32;</xsl:text>
-		<xsl:call-template name="citation-backlink">
-			<xsl:with-param name="citation" select="."/>
-		</xsl:call-template>		
     </xsl:template>
-	
 
 	<!-- Other APA style specific templates -->
 	

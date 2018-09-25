@@ -10,7 +10,9 @@
 
     <xsl:param name="public-reviews" select="false()"/>
     <xsl:param name="static-root" select="''"/>
-		
+	
+	<xsl:param name="citation-style" select="ABNT"/>
+	
     <xsl:param name="search-root" select="''"/>
     <xsl:param name="download-prefix" select="'file'"/>
     <xsl:param name="publication-type" select="'publication'"/>
@@ -667,7 +669,7 @@
         </xsl:variable>
         <xsl:variable name="ref-doi" select="$ref/*/pub-id[@pub-id-type='doi']"/>
         <xsl:variable name="ref-uri" select="$ref/*/comment/uri"/>
-			
+		
         <xsl:variable name="url">
 			<xsl:value-of select="concat('#', $citation/../@id)"/>
         </xsl:variable>
@@ -675,7 +677,6 @@
         <a class="{local-name()} xref-{@ref-type}" href="{$url}" title="{$title}">
             <xsl:apply-templates select="node()|@*"/>
         </a>
-		
     </xsl:template>
 
     <!-- figure -->
@@ -776,7 +777,11 @@
                 <xsl:text>Download video</xsl:text>
             </a>
         </div>
-
+        <!--
+        <video controls="controls" preload="none" width="100%">
+            <source src="{$static-root}{@xlink:href}" type="video/{@mime-subtype}"/>
+        </video>
+        -->
     </xsl:template>
 
     <!-- definition list -->

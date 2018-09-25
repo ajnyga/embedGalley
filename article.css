@@ -1,12 +1,8 @@
-#full-article{
-	 text-align: justify;
-}
 
 #full-article .ref-list{
 	margin: 0 0 0 20px;
 	padding: 0;
 }
-
 #full-article .ref-list li{
 	margin: 0 0 10px 0;
 	
@@ -20,7 +16,6 @@
 #full-article .fn-group .fn{
 	margin: 10px 0 0 0;
 }
-
 #full-article .fn .article-label{
 	margin: 0 10px 0 0;
 }
@@ -36,16 +31,16 @@
 	padding: 10px;
 }
 
-#full-article .xref{
+.xref{
 	text-decoration: none;
 }
 
-#full-article .xref-fn{
+.xref-fn{
 	border: 1px solid #f4f6f9;
 	padding: 0 2px 0 2px;
 }
 
-#full-article .xref-bibr{
+.xref-bibr{
   background: rgba(11, 157, 217, 0.075);
   color: #1B6685;
   border-bottom: 1px solid rgba(11, 157, 217, 0.4);
@@ -54,16 +49,16 @@
   padding-left: 3px;
 }
 
-#full-article .xref-fig, #full-article .xref-table{
+.xref-fig, .xref-table{
   background: rgba(145, 187, 4, 0.15);
   border-bottom: 1px solid rgba(145, 187, 4, 0.6);
   color: #495A11;
-  cursor: pointer;
-  padding-right: 3px;
-  padding-left: 3px;  
+  cursor: pointer; 
 }
 
-#full-article .table-wrap  table {
+
+
+.table-wrap  table {
   border: 1px solid #ccc;
   border-collapse: collapse;
   margin: 0;
@@ -71,86 +66,75 @@
   width: 100%;
   table-layout: fixed;
 }
-
-#full-article .table-wrap .title, #full-article .table-wrap .caption {
+.table-wrap .title, .table-wrap .caption {
   font-size: 1.5em;
-  line-height: 1.6em;
   padding: 10px;
 }
 
-#full-article .table-wrap table tr {
+
+.table-wrap table tr {
   background: #f8f8f8;
   border: 1px solid #ddd;
   padding: .35em;
 }
-
-#full-article .table-wrap table th,
-#full-article .table-wrap table td {
+.table-wrap table th,
+.table-wrap table td {
   padding: .625em;
   text-align: center;
   word-wrap: break-word;
 }
-
-#full-article .table-wrap table th {
+.table-wrap table th {
   font-size: .85em;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 
-.ui-tooltip, .arrow:after {
-	background: black;
-	border: 2px solid white;
-}
-
-.ui-tooltip {
-	padding: 10px 20px;
-	color: white;
-	border-radius: 20px;
-	box-shadow: 0 0 7px black;
+  .ui-tooltip, .arrow:after {
+    background: black;
+    border: 2px solid white;
+  }
+  .ui-tooltip {
+    padding: 10px 20px;
+    color: white;
+    border-radius: 20px;
+    box-shadow: 0 0 7px black;
 	width: 300px;
-}
-
-.arrow {
-	width: 70px;
-	height: 16px;
-	overflow: hidden;
-	position: absolute;
-	left: 50%;
-	margin-left: -35px;
-	bottom: -16px;
-}
-
-.arrow.top {
-	top: -16px;
-	bottom: auto;
-}
-
-.arrow.left {
-	left: 20%;
-}
-
-.arrow:after {
-	content: "";
-	position: absolute;
-	left: 20px;
-	top: -20px;
-	width: 25px;
-	height: 25px;
-	box-shadow: 6px 5px 9px -9px black;
-	-webkit-transform: rotate(45deg);
-	-ms-transform: rotate(45deg);
-	transform: rotate(45deg);
-}
-
-.arrow.top:after {
-	bottom: -20px;
-	top: auto;
-}
-
+  }
+  .arrow {
+    width: 70px;
+    height: 16px;
+    overflow: hidden;
+    position: absolute;
+    left: 50%;
+    margin-left: -35px;
+    bottom: -16px;
+  }
+  .arrow.top {
+    top: -16px;
+    bottom: auto;
+  }
+  .arrow.left {
+    left: 20%;
+  }
+  .arrow:after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: -20px;
+    width: 25px;
+    height: 25px;
+    box-shadow: 6px 5px 9px -9px black;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+  .arrow.top:after {
+    bottom: -20px;
+    top: auto;
+  }
 .ui-helper-hidden {
-	display: none;
+   display: none;
 }
-
 .ui-helper-hidden-accessible {
    border: 0;
    clip: rect(0 0 0 0);

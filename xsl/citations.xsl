@@ -404,15 +404,7 @@
             </time>
             <xsl:text>)</xsl:text>
         </span>
-    </xsl:template>
-
-    <!-- link out from a citation title -->
-    <xsl:template name="citation-backlink">
-		<a class="ref-back-button">
-			<i class="fa fa-arrow-left" aria-hidden="true"></i>
-		</a>
-    </xsl:template>
-	
+    </xsl:template>				
 
 
 </xsl:stylesheet>
