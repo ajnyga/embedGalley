@@ -3,10 +3,10 @@
 /**
  * @file plugins/generic/embedGalley/EmbedGalleyPlugin.inc.php
  *
- * Copyright (c) 2014-2017 Simon Fraser University
- * Copyright (c) 2003-2017 John Willinsky
+ * Copyright (c) 2014-2019 Simon Fraser University
+ * Copyright (c) 2003-2019 John Willinsky
  * Copyright (c) 2017 The Federation of Finnish Learned Societies
- * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+ * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * @class embedGalley
  * @ingroup plugins_generic_embedGalley
@@ -23,18 +23,14 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @return boolean True iff plugin initialized successfully; if false,
 	 * 	the plugin will not be registered.
 	 */
-	function register($category, $path) {
+	function register($category, $path, $mainContextId = NULL) {
 		$success = parent::register($category, $path);
 		if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) return true;
 		if ($success && $this->getEnabled()) {
-			
 			// TODO: how do you define a sequence for all plugins using this hook?
 			HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
-			
 			// Add stylesheet and javascript
 			HookRegistry::register('TemplateManager::display',array($this, 'displayCallback'));
-			
-		
 		}
 		return $success;
 	}
@@ -107,32 +103,18 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	}
 
 	/**
-	 * @copydoc PKPPlugin::getTemplatePath
-	 */
-	function getTemplatePath($inCore = false) {
-		return parent::getTemplatePath($inCore) . 'templates/';
-	}
-
-	
-	
-	/**
 	 * Insert stylesheet and js
 	 */
 	function displayCallback($hookName, $params) {
-
 		$template = $params[1];
-			
 		if ($template != 'frontend/pages/article.tpl') return false;
-		
 		$templateMgr = $params[0];
 		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
 		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
 		$templateMgr->addJavaScript('mathJax', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML');
-		
 		return false;
 	}
-	
-	
+
 	/**
 	 * Convert and embed html to abstract page footer
 	 * @param $hookName string
@@ -141,36 +123,34 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	function embedHtml($hookName, $params) {
 		$smarty =& $params[1];
 		$output =& $params[2];
-		
 		$article = $smarty->get_template_vars('article');
 		$galleys = $article->getGalleys();
-		
+
 		// TODO: handle language versions ie. multiple XML galleys. Check for current locale and use that. If not available fallback to primary locale and/or the XML version that is available
 		foreach ($article->getGalleys() as $galley) {
 			if ($galley && in_array($galley->getFileType(), array('application/xml', 'text/xml'))) {
 				$xmlGalley = $galley;
 			}
 		}
-		
+
 		// Return false if no XML galleys available
 		// TODO: Check for article component -> Article text; check for multilingual
 		if (!$xmlGalley) return false;
 		
 		$request = Application::getRequest();	
-		
+
 		// Parse XML to HTML		
 		$html = $this->_parseXml($xmlGalley->getFile());
-		
+
 		// Parse HTML image url's etc.
 		$html = $this->_parseHtmlContents($request, $html, $xmlGalley);
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
-		
-		$output .= $smarty->fetch($this->getTemplatePath() . 'articleFooter.tpl');
+
+		$output .= $smarty->fetch($this->getTemplateResource('articleFooter.tpl'));
 
 		return false;
-		
 	}
 
 	/**
@@ -179,18 +159,16 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @return string
 	 */
 	function _parseXml($xmlGalley) {
-		
 		$document = new DOMDocument;
 		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
-		
+
 		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded here
 		$citation_style = "APA"; 
 		$document = $this->_generateHTML($document, $citation_style);
-		
+
 		$html = $document->saveHTML($document->documentElement);
-		
+
 		return $html;
-		
 	}
 
 	/**
@@ -229,23 +207,19 @@ class EmbedGalleyPlugin extends GenericPlugin {
 				'\1="' . $fileUrl . '"',
 				$contents
 			);
-
-
 		}
 
 		return $contents;
 	}	
-	
+
 	/**
 	 * Generate HTML from XML
 	 * @param $input JATS XML DOMDocument
 	 * @param $citation_style Style for references
 	 * @return DOMdocument
-	 */	
+	 */
     function _generateHTML(\DOMDocument $input, $citation_style){
-		
 		$path = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
-		
         $stylesheet = new \DOMDocument();
         $stylesheet->load($path);
 
@@ -254,15 +228,13 @@ class EmbedGalleyPlugin extends GenericPlugin {
             'rawurlencode',
             'EmbedGalleyPlugin::formatDate'
         ]);
-		
+
         $processor->importStyleSheet($stylesheet);
-		
         $doc = $processor->transformToDoc($input);
         $doc->formatOutput = true;
-
         return $doc;
-    }	
-	
+    }
+
 	/**
 	 * Return string containing date
 	 * @param $text String to be formatted
@@ -273,11 +245,6 @@ class EmbedGalleyPlugin extends GenericPlugin {
         $date = new \DateTime($text);
         return $date->format($format);
     }
-	
-	
-	
 }
-
-
-
 ?>
+
