@@ -74,5 +74,3 @@ class EmbedGalleySettingsForm extends Form {
 	
 	}
 }
-
-?>

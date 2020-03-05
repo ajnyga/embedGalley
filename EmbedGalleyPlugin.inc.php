@@ -246,5 +246,3 @@ class EmbedGalleyPlugin extends GenericPlugin {
         return $date->format($format);
     }
 }
-?>
-
