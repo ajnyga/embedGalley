@@ -17,7 +17,4 @@
  */
 
 require_once('EmbedGalleyPlugin.inc.php');
-
 return new EmbedGalleyPlugin();
-
-?>
