@@ -219,7 +219,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @return DOMdocument
 	 */
     function _generateHTML(\DOMDocument $input, $citation_style){
-		$path = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+	$path = Core::getBaseDir() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
         $stylesheet = new \DOMDocument();
         $stylesheet->load($path);
 
