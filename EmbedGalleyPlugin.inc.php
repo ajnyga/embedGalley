@@ -106,14 +106,15 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * Insert stylesheet and js
 	 */
 	function displayCallback($hookName, $params) {
-		$template = $params[1];
-		if ($template != 'frontend/pages/article.tpl') return false;
-		$templateMgr = $params[0];
-		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
-		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
-		$templateMgr->addJavaScript('mathJax', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML');
-		return false;
-	}
+    		$template = $params[1];
+    		if ($template != 'frontend/pages/article.tpl') return false;
+    		$templateMgr = $params[0];
+    		$request = Application::get()->getRequest();
+    		$templateMgr->addStylesheet('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
+    		$templateMgr->addJavaScript('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
+    		$templateMgr->addJavaScript('mathJax', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML');
+    		return false;
+  	}
 
 	/**
 	 * Convert and embed html to abstract page footer
@@ -190,15 +191,17 @@ class EmbedGalleyPlugin extends GenericPlugin {
 			$submissionFileDao->getLatestRevisionsByAssocId(ASSOC_TYPE_SUBMISSION_FILE, $submissionFile->getFileId(), $submissionFile->getSubmissionId(), SUBMISSION_FILE_DEPENDENT)
 		);
 		$referredArticle = null;
-		$articleDao = DAORegistry::getDAO('ArticleDAO');
+		$articleDao = DAORegistry::getDAO('SubmissionDAO');
+		$publicationService = Services::get('publication'); 
 
 		foreach ($embeddableFiles as $embeddableFile) {
 			$params = array();
 
 			// Ensure that the $referredArticle object refers to the article we want
-			if (!$referredArticle || $referredArticle->getId() != $galley->getSubmissionId()) {
-				$referredArticle = $articleDao->getById($galley->getSubmissionId());
-			}
+			if (!$referredArticle || !$referredPublication || $referredPublication->getData('submissionId') != $referredArticle->getId() || $referredPublication->getId() != $galley->getData('public
+          			$referredPublication = $publicationService->get($galley->getData('publicationId'));
+          			$referredArticle = $articleDao->getById($referredPublication->getData('submissionId'));
+        		}
 			$fileUrl = $request->url(null, 'article', 'download', array($referredArticle->getBestArticleId(), $galley->getBestGalleyId(), $embeddableFile->getFileId()), $params);
 			$pattern = preg_quote($embeddableFile->getOriginalFileName());
 
