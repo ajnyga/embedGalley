@@ -123,13 +123,16 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	function embedHtml($hookName, $params) {
 		$smarty =& $params[1];
 		$output =& $params[2];
-		$article = $smarty->get_template_vars('article');
-		$galleys = $article->getGalleys();
+		$publication = $smarty->getTemplateVars('publication');
 
 		// TODO: handle language versions ie. multiple XML galleys. Check for current locale and use that. If not available fallback to primary locale and/or the XML version that is available
-		foreach ($article->getGalleys() as $galley) {
+		$xmlGalley = null;
+		foreach ($publication->getData('galleys') as $galley) {
 			if ($galley && in_array($galley->getFileType(), array('application/xml', 'text/xml'))) {
-				$xmlGalley = $galley;
+				if ($publication->getId() === $galley->getData('publicationId')) {
+		  			$xmlGalley = $galley;
+		  			break;
+				}
 			}
 		}
 
