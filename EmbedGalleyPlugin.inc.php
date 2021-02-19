@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/embedGalley/EmbedGalleyPlugin.inc.php
  *
- * Copyright (c) 2014-2019 Simon Fraser University
- * Copyright (c) 2003-2019 John Willinsky
+ * Copyright (c) 2014-2021 Simon Fraser University
+ * Copyright (c) 2003-2021 John Willinsky
  * Copyright (c) 2017 The Federation of Finnish Learned Societies
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
@@ -108,9 +108,10 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	function displayCallback($hookName, $params) {
 		$template = $params[1];
 		if ($template != 'frontend/pages/article.tpl') return false;
+		$request = Application::get()->getRequest();
 		$templateMgr = $params[0];
-		$templateMgr->addStylesheet('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
-		$templateMgr->addJavaScript('embedGalley', Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
+		$templateMgr->addStylesheet('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
+		$templateMgr->addJavaScript('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
 		$templateMgr->addJavaScript('mathJax', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML');
 		return false;
 	}
@@ -146,7 +147,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$html = $this->_parseXml($xmlGalley->getFile());
 
 		// Parse HTML image url's etc.
-		$html = $this->_parseHtmlContents($request, $html, $xmlGalley);
+		$html = $this->_parseHtmlContents($request, $html, $xmlGalley, $publication);
 
 		// Assign HTML to article template
 		$smarty->assign('html', $html);
@@ -181,7 +182,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @param $galley ArticleGalley
 	 * @return string
 	 */	
-	function _parseHtmlContents($request, $contents, $galley) {
+	function _parseHtmlContents($request, $contents, $galley, $publication) {
 		$journal = $request->getJournal();
 		$submissionFile = $galley->getFile();
 
@@ -193,14 +194,14 @@ class EmbedGalleyPlugin extends GenericPlugin {
 			$submissionFileDao->getLatestRevisionsByAssocId(ASSOC_TYPE_SUBMISSION_FILE, $submissionFile->getFileId(), $submissionFile->getSubmissionId(), SUBMISSION_FILE_DEPENDENT)
 		);
 		$referredArticle = null;
-		$articleDao = DAORegistry::getDAO('ArticleDAO');
+		$submissionDao = DAORegistry::getDAO('SubmissionDAO');
 
 		foreach ($embeddableFiles as $embeddableFile) {
 			$params = array();
 
 			// Ensure that the $referredArticle object refers to the article we want
-			if (!$referredArticle || $referredArticle->getId() != $galley->getSubmissionId()) {
-				$referredArticle = $articleDao->getById($galley->getSubmissionId());
+			if (!$referredArticle || $referredArticle->getId() != $galley->getData('publicationId')) {
+				$referredArticle = $submissionDao->getById($publication->getData('submissionId'));
 			}
 			$fileUrl = $request->url(null, 'article', 'download', array($referredArticle->getBestArticleId(), $galley->getBestGalleyId(), $embeddableFile->getFileId()), $params);
 			$pattern = preg_quote($embeddableFile->getOriginalFileName());
@@ -222,7 +223,8 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @return DOMdocument
 	 */
     function _generateHTML(\DOMDocument $input, $citation_style){
-		$path = Request::getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+		$path = Core::getBaseDir() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'xsl' . DIRECTORY_SEPARATOR . $citation_style . ".xsl";
+
         $stylesheet = new \DOMDocument();
         $stylesheet->load($path);
 
