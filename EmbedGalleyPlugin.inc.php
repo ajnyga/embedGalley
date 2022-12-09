@@ -142,9 +142,11 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	 * @return string
 	 */
 	function _parseXml($xmlGalley) {
+		$contents = Services::get('file')->fs->read($xmlGalley->getData('path'));
+		
 		$document = new DOMDocument;
-		$document->load($xmlGalley->getFilePath(), LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
-
+		$document->loadXML($contents, LIBXML_DTDLOAD | LIBXML_DTDVALID | LIBXML_NONET | LIBXML_NOENT);
+	
 		// TODO: use $citation_style to select the correct citation style from plugin settings, for now hardcoded here
 		$citation_style = "APA"; 
 		$document = $this->_generateHTML($document, $citation_style);
@@ -164,14 +166,18 @@ class EmbedGalleyPlugin extends GenericPlugin {
 	function _parseHtmlContents($request, $contents, $galley, $publication) {
 		$journal = $request->getJournal();
 		$submissionFile = $galley->getFile();
+		$submissionId = $submissionFile->getData('submissionId');
 
 		// Replace media file references
-		$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
 		import('lib.pkp.classes.submission.SubmissionFile'); // Constants
-		$embeddableFiles = array_merge(
-			$submissionFileDao->getLatestRevisions($submissionFile->getSubmissionId(), SUBMISSION_FILE_PROOF),
-			$submissionFileDao->getLatestRevisionsByAssocId(ASSOC_TYPE_SUBMISSION_FILE, $submissionFile->getFileId(), $submissionFile->getSubmissionId(), SUBMISSION_FILE_DEPENDENT)
-		);
+		$embeddableFilesIterator = Services::get('submissionFile')->getMany([
+			'assocTypes' => [ASSOC_TYPE_SUBMISSION_FILE],
+			'assocIds' => [$submissionFile->getId()],
+			'fileStages' => [SUBMISSION_FILE_DEPENDENT],
+			'includeDependentFiles' => true,
+		]);
+		$embeddableFiles = iterator_to_array($embeddableFilesIterator);
+
 		$referredArticle = null;
 		$submissionDao = DAORegistry::getDAO('SubmissionDAO');
 
@@ -179,11 +185,12 @@ class EmbedGalleyPlugin extends GenericPlugin {
 			$params = array();
 
 			// Ensure that the $referredArticle object refers to the article we want
-			if (!$referredArticle || $referredArticle->getId() != $galley->getData('publicationId')) {
-				$referredArticle = $submissionDao->getById($publication->getData('submissionId'));
+			if (!$referredArticle || $referredArticle->getId() != $submissionId) {
+				$referredArticle = $submissionDao->getById($submissionId);
 			}
-			$fileUrl = $request->url(null, 'article', 'download', array($referredArticle->getBestArticleId(), $galley->getBestGalleyId(), $embeddableFile->getFileId()), $params);
-			$pattern = preg_quote($embeddableFile->getOriginalFileName());
+
+			$fileUrl = $request->url(null, 'article', 'download', [$referredArticle->getBestId(), 'version', $galley->getData('publicationId'), $galley->getBestGalleyId(), $embeddableFile->getId(), $embeddableFile->getLocalizedData('name')], $params);
+			$pattern = preg_quote(rawurlencode($embeddableFile->getLocalizedData('name')));
 
 			$contents = preg_replace(
 				'/([Ss][Rr][Cc]|[Hh][Rr][Ee][Ff]|[Dd][Aa][Tt][Aa])\s*=\s*"([^"]*' . $pattern . ')"/',
