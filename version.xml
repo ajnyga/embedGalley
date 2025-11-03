@@ -13,8 +13,8 @@
 <version>
 	<application>embedGalley</application>
 	<type>plugins.generic</type>
-	<release>1.1.0.0</release>
-	<date>2022-02-17</date>
+	<release>3.4.0.0</release>
+	<date>2025-11-03</date>
 	<lazy-load>1</lazy-load>
 	<class>EmbedGalleyPlugin</class>
 </version>

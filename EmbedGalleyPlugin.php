@@ -14,7 +14,19 @@
  * @brief embedGalley plugin class
  */
 
-import('lib.pkp.classes.plugins.GenericPlugin');
+namespace APP\plugins\generic\embedGalley;
+
+use DOMDocument;
+use PKP\core\Core;
+use APP\core\Application;
+use APP\facades\Repo;
+use APP\core\Services;
+use APP\publication\Publication;
+use APP\template\TemplateManager;
+use PKP\config\Config;
+use PKP\submissionFile\SubmissionFile;
+use PKP\plugins\Hook;
+use PKP\plugins\GenericPlugin;
 
 class EmbedGalleyPlugin extends GenericPlugin {
 	/**
@@ -27,10 +39,8 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$success = parent::register($category, $path);
 		if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) return true;
 		if ($success && $this->getEnabled()) {
-			// TODO: how do you define a sequence for all plugins using this hook?
-			HookRegistry::register('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
-			// Add stylesheet and javascript
-			HookRegistry::register('TemplateManager::display',array($this, 'displayCallback'));
+			Hook::add('Templates::Article::Footer::PageFooter', array($this, 'embedHtml'));
+			Hook::add('TemplateManager::display',array($this, 'displayCallback'));
 		}
 		return $success;
 	}
@@ -51,36 +61,6 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		return __('plugins.generic.embedGalley.description');
 	}
 
-
- 	/**
-	 * @copydoc Plugin::manage()
-	 */
-	function manage($args, $request) {
-		switch ($request->getUserVar('verb')) {
-			case 'settings':
-				$context = $request->getContext();
-
-				AppLocale::requireComponents(LOCALE_COMPONENT_APP_COMMON,  LOCALE_COMPONENT_PKP_MANAGER);
-				$templateMgr = TemplateManager::getManager($request);
-				$templateMgr->register_function('plugin_url', array($this, 'smartyPluginUrl'));
-
-				$this->import('EmbedGalleySettingsForm');
-				$form = new EmbedGalleySettingsForm($this, $context->getId());
-
-				if ($request->getUserVar('save')) {
-					$form->readInputData();
-					if ($form->validate()) {
-						$form->execute();
-						return new JSONMessage(true);
-					}
-				} else {
-					$form->initData();
-				}
-				return new JSONMessage(true, $form->fetch($request));
-		}
-		return parent::manage($args, $request);
-	}
-
 	/**
 	 * Insert stylesheet and js
 	 */
@@ -91,7 +71,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$templateMgr = $params[0];
 		$templateMgr->addStylesheet('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'article.css');
 		$templateMgr->addJavaScript('embedGalley', $request->getBaseUrl() . DIRECTORY_SEPARATOR . $this->getPluginPath() . DIRECTORY_SEPARATOR . 'embedGalley.js');
-		$templateMgr->addJavaScript('mathJax', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML');
+		$templateMgr->addJavaScript('mathJax', 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js');
 		return false;
 	}
 
@@ -120,7 +100,7 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		// TODO: Check for article component -> Article text; check for multilingual
 		if (!$xmlGalley) return false;
 		
-		$request = Application::getRequest();	
+		$request = Application::get()->getRequest();
 
 		// Parse XML to HTML		
 		$html = $this->_parseXml($xmlGalley->getFile());
@@ -167,26 +147,27 @@ class EmbedGalleyPlugin extends GenericPlugin {
 		$journal = $request->getJournal();
 		$submissionFile = $galley->getFile();
 		$submissionId = $submissionFile->getData('submissionId');
+        #$contents = Services::get('file')->fs->read($submissionFile->getData('path'));		
 
 		// Replace media file references
-		import('lib.pkp.classes.submission.SubmissionFile'); // Constants
-		$embeddableFilesIterator = Services::get('submissionFile')->getMany([
-			'assocTypes' => [ASSOC_TYPE_SUBMISSION_FILE],
-			'assocIds' => [$submissionFile->getId()],
-			'fileStages' => [SUBMISSION_FILE_DEPENDENT],
-			'includeDependentFiles' => true,
-		]);
-		$embeddableFiles = iterator_to_array($embeddableFilesIterator);
+        $embeddableFiles = Repo::submissionFile()
+            ->getCollector()
+            ->filterByAssoc(
+                Application::ASSOC_TYPE_SUBMISSION_FILE,
+                [$submissionFile->getId()]
+            )
+            ->filterByFileStages([SubmissionFile::SUBMISSION_FILE_DEPENDENT])
+            ->includeDependentFiles()
+            ->getMany();
 
 		$referredArticle = null;
-		$submissionDao = DAORegistry::getDAO('SubmissionDAO');
 
 		foreach ($embeddableFiles as $embeddableFile) {
 			$params = array();
 
 			// Ensure that the $referredArticle object refers to the article we want
 			if (!$referredArticle || $referredArticle->getId() != $submissionId) {
-				$referredArticle = $submissionDao->getById($submissionId);
+				 $referredArticle = Repo::submission()->get($submissionId);
 			}
 
 			$fileUrl = $request->url(null, 'article', 'download', [$referredArticle->getBestId(), 'version', $galley->getData('publicationId'), $galley->getBestGalleyId(), $embeddableFile->getId(), $embeddableFile->getLocalizedData('name')], $params);

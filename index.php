@@ -16,5 +16,5 @@
  *
  */
 
-require_once('EmbedGalleyPlugin.inc.php');
+namespace APP\plugins\generic\embedGalley;
 return new EmbedGalleyPlugin();
